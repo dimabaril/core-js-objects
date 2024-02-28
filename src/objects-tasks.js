@@ -380,32 +380,134 @@ function group(array, keySelector, valueSelector) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  order: 0,
+  elementValue: '',
+  idValue: '',
+  classes: [],
+  attrs: [],
+  pseudoClasses: [],
+  pseudoElementValue: '',
+
+  element(value) {
+    if (this.order > 1) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    if (this.elementValue) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    return Object.create(this, {
+      elementValue: { value },
+      order: { value: 1 },
+    });
+  },
+  id(value) {
+    if (this.order > 2) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    if (this.idValue) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    return Object.create(this, { idValue: { value }, order: { value: 2 } });
+  },
+  class(value) {
+    if (this.order > 3) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    const classes = [...this.classes, value];
+    return Object.create(this, {
+      classes: { value: classes, writable: true },
+      order: { value: 3 },
+    });
+  },
+  attr(value) {
+    if (this.order > 4) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    const attrs = [...this.attrs, value];
+    return Object.create(this, {
+      attrs: { value: attrs, writable: true },
+      order: { value: 4 },
+    });
+  },
+  pseudoClass(value) {
+    if (this.order > 5) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    const pseudoClasses = [...this.pseudoClasses, value];
+    return Object.create(this, {
+      pseudoClasses: {
+        value: pseudoClasses,
+        writable: true,
+      },
+      order: { value: 5 },
+    });
+  },
+  pseudoElement(value) {
+    if (this.order > 6) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    if (this.pseudoElementValue) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    return Object.create(this, {
+      pseudoElementValue: { value },
+      order: { value: 6 },
+    });
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return Object.create(this, {
+      elementValue: {
+        value: `${selector1.stringify()} ${combinator} ${selector2.stringify()}`,
+      },
+    });
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  attr(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  stringify() {
+    let result = '';
+    if (this.elementValue) {
+      result += this.elementValue;
+    }
+    if (this.idValue) {
+      result += `#${this.idValue}`;
+    }
+    if (this.classes.length > 0) {
+      result += `.${this.classes.join('.')}`;
+    }
+    if (this.attrs.length > 0) {
+      result += `[${this.attrs.join('][')}]`;
+    }
+    if (this.pseudoClasses.length > 0) {
+      result += `:${this.pseudoClasses.join(':')}`;
+    }
+    if (this.pseudoElementValue) {
+      result += `::${this.pseudoElementValue}`;
+    }
+    return result;
   },
 };
 
